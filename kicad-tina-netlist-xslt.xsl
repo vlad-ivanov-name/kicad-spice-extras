@@ -8,6 +8,7 @@
 <xsl:output method="text" omit-xml-declaration="yes" indent="no"/>
 
 <xsl:variable name="spice_controller" select="export/components/comp/fields/field[@name='SPICE_CONTROLLER']" />
+<xsl:variable name="spice_includes" select="export/components/comp/fields/field[@name='SPICE_FILE']" />
 
 <xsl:template match="/export">
 	<!-- file header -->
@@ -16,15 +17,21 @@
     <xsl:text>&nl;</xsl:text>
     <xsl:text>* Kicad to TINA netlist XSLT transformer &nl;&nl;</xsl:text>
 
+	<!-- Includes -->
+	<xsl:apply-templates mode="includes" select="$spice_includes" />
+	<xsl:if test="$spice_includes">
+		<xsl:text>&nl;</xsl:text>
+	</xsl:if>
+
     <!-- Components -->
     <xsl:apply-templates mode="components" select="components/comp" />
-    
+
 	<!-- Connect ground node -->
 	<xsl:apply-templates mode="ground" select="nets/net[@name='GND']" />
-	
+
 	<!-- Process controllers -->
 	<xsl:apply-templates mode="controller" select="$spice_controller"/>
-	
+
 	<!-- Process voltage probes -->
 	<xsl:apply-templates mode="vprobe" select="nets/net" />
 
@@ -58,6 +65,12 @@
 	<xsl:text>&nl;</xsl:text>
 </xsl:template>
 
+<xsl:template match="components/comp/fields/field" mode="includes">
+	<xsl:text>.INCLUDE </xsl:text>
+	<xsl:value-of select="." />
+	<xsl:text>&nl;</xsl:text>
+</xsl:template>
+
 <xsl:template match="components/comp/fields/field" mode="controller_name">
 	<xsl:value-of select="." />
 </xsl:template>
@@ -65,13 +78,13 @@
 <!-- for each component -->
 <xsl:template match="components/comp" mode="components">
     <xsl:variable name="ref" select="@ref" />
-    
+
     <!-- Do not process spice-extras components -->
     <xsl:choose>
     	<xsl:when test="fields/field[@name='SPICE_EXTRA']"></xsl:when>
     	<xsl:otherwise>
 			<xsl:value-of select="@ref"/>
-		
+
 		    <!-- Apply transformation to a list of nodes associated with this component-->
 		    <xsl:apply-templates select="../../nets/net/node[@ref=$ref]">
 		    	<xsl:sort select="@pin" />
@@ -79,7 +92,7 @@
 		    		<xsl:value-of select="@ref"/>
 		    	</xsl:with-param>
 		    </xsl:apply-templates>
-		    
+
 		    <xsl:text>&nl;</xsl:text>
 	    </xsl:otherwise>
 	</xsl:choose>
@@ -101,19 +114,17 @@
 		<xsl:with-param name="net_code" select="../@code" />
 		<xsl:with-param name="net_name" select="../@name" />
 	</xsl:call-template>
-	
-	<xsl:text> </xsl:text>
 </xsl:template>
 
 <xsl:template name="net_name">
 	<xsl:param name="net_code" />
 	<xsl:param name="net_name" />
-	
+
 	<!--  Check for default name -->
-	<xsl:choose> 
+	<xsl:choose>
 		<xsl:when test="starts-with($net_name, 'Net-(')">
 			<xsl:value-of select="$net_code" />
-		</xsl:when>		
+		</xsl:when>
 		<xsl:otherwise>
 			<!-- For TINA, net name should start with a number -->
 			<xsl:value-of select="$net_code" />
