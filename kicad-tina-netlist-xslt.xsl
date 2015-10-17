@@ -84,6 +84,9 @@
     <xsl:choose>
     	<xsl:when test="fields/field[@name='SPICE_EXTRA']"></xsl:when>
     	<xsl:otherwise>
+    		<xsl:if test="starts-with(@ref, 'U')">
+    			<xsl:text>X</xsl:text>
+    		</xsl:if>
 			<xsl:value-of select="@ref"/>
 
 		    <!-- Apply transformation to a list of nodes associated with this component-->
