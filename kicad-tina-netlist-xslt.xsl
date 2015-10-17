@@ -76,6 +76,43 @@
 	<xsl:value-of select="." />
 </xsl:template>
 
+<xsl:template name="node_tokenize">
+	<xsl:param name="text" select="."/>
+	<xsl:param name="separator" select="','"/>
+	<xsl:param name="component" />
+	<xsl:variable name="call_next" select="not(contains($text, $separator))" />
+
+	<xsl:text> </xsl:text>
+
+	<xsl:choose>
+		<xsl:when test="$call_next">
+			<item>
+				<xsl:variable name="index" select="normalize-space($text)" />
+				<xsl:variable name="net" select="../../nets/net/node[@ref=$component][@pin=$index]/.." />
+			
+				<xsl:call-template name="net_name">
+					<xsl:with-param name="net_code" select="$net/@code" />
+					<xsl:with-param name="net_name" select="$net/@name" />
+				</xsl:call-template>		
+			</item>
+		</xsl:when>
+		<xsl:otherwise>
+			<xsl:variable name="index" select="normalize-space(substring-before($text, $separator))" />
+			<xsl:variable name="net" select="../../nets/net/node[@ref=$component][@pin=$index]/.." />
+
+			<xsl:call-template name="net_name">
+				<xsl:with-param name="net_code" select="$net/@code" />
+				<xsl:with-param name="net_name" select="$net/@name" />
+			</xsl:call-template>
+
+			<xsl:call-template name="node_tokenize">
+				<xsl:with-param name="text" select="substring-after($text, $separator)"/>
+				<xsl:with-param name="component" select="$component" />
+			</xsl:call-template>
+		</xsl:otherwise>
+	</xsl:choose>
+</xsl:template>
+
 <!-- for each component -->
 <xsl:template match="components/comp" mode="components">
     <xsl:variable name="ref" select="@ref" />
@@ -90,13 +127,23 @@
 			<xsl:value-of select="@ref"/>
 
 		    <!-- Apply transformation to a list of nodes associated with this component-->
-		    <xsl:apply-templates select="../../nets/net/node[@ref=$ref]">
-		    	<xsl:sort select="@pin" />
-		    	<xsl:with-param name="component">
-		    		<xsl:value-of select="@ref"/>
-		    	</xsl:with-param>
-		    </xsl:apply-templates>
-
+		    <xsl:choose>
+		    	<xsl:when test="fields/field[@name='Spice_Node_Sequence']">
+					<xsl:call-template name="node_tokenize">
+						<xsl:with-param name="component" select="@ref" />
+						<xsl:with-param name="text" select="fields/field[@name='Spice_Node_Sequence']" />
+					</xsl:call-template>
+		    	</xsl:when>
+		    	<xsl:otherwise>
+					<xsl:apply-templates select="../../nets/net/node[@ref=$ref]">
+			    		<xsl:sort select="@pin" />
+			    		<xsl:with-param name="component">
+			    			<xsl:value-of select="@ref"/>
+			    		</xsl:with-param>
+			 		</xsl:apply-templates>
+		    	</xsl:otherwise>
+		    </xsl:choose>
+		    
 			<xsl:text> </xsl:text>
 			<xsl:value-of select="value" />
 
