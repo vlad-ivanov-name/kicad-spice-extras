@@ -94,6 +94,9 @@
 		    	</xsl:with-param>
 		    </xsl:apply-templates>
 
+			<xsl:text> </xsl:text>
+			<xsl:value-of select="value" />
+
 		    <xsl:text>&nl;</xsl:text>
 	    </xsl:otherwise>
 	</xsl:choose>
