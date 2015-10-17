@@ -55,7 +55,7 @@
 		<xsl:with-param name="net_code" select="../@code" />
 		<xsl:with-param name="net_name" select="../@name" />
 	</xsl:call-template>
-	<xsl:text>) </xsl:text>
+	<xsl:text>)</xsl:text>
 </xsl:template>
 
 <xsl:template match="components/comp/fields/field" mode="controller">
