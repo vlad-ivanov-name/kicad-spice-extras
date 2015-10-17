@@ -9,6 +9,7 @@
 
 <xsl:variable name="spice_controller" select="export/components/comp/fields/field[@name='SPICE_CONTROLLER']" />
 <xsl:variable name="spice_includes" select="export/components/comp/fields/field[@name='SPICE_FILE']" />
+<xsl:variable name="spice_probe" select="export/nets/net/node[starts-with(@ref, 'VP')]" />
 
 <xsl:template match="/export">
 	<!-- file header -->
@@ -33,19 +34,19 @@
 	<xsl:apply-templates mode="controller" select="$spice_controller"/>
 
 	<!-- Process voltage probes -->
-	<xsl:apply-templates mode="vprobe" select="nets/net" />
+	<xsl:if test="$spice_probe">
+		<xsl:call-template name="vprobe" />
+	</xsl:if>
 
     <!-- Footer -->
     <xsl:text>&nl;.END&nl;</xsl:text>
 </xsl:template>
 
-<xsl:template match="nets/net" mode="vprobe">
-	<xsl:if test="node[starts-with(@ref, 'VP')]">
-		<xsl:text>.PRINT </xsl:text>
-		<xsl:apply-templates mode="controller_name" select="$spice_controller"/>
-		<xsl:apply-templates mode="vprobe_apply" select="node[starts-with(@ref, 'VP')]" />
-		<xsl:text>&nl;</xsl:text>
-	</xsl:if>
+<xsl:template name="vprobe">
+	<xsl:text>.PRINT </xsl:text>
+	<xsl:apply-templates mode="controller_name" select="$spice_controller"/>
+	<xsl:apply-templates mode="vprobe_apply" select="$spice_probe" />
+	<xsl:text>&nl;</xsl:text>
 </xsl:template>
 
 <xsl:template match="net/node" mode="vprobe_apply">
@@ -129,7 +130,7 @@
 			<!-- For TINA, net name should start with a number -->
 			<xsl:value-of select="$net_code" />
 			<xsl:text>_</xsl:text>
-			<xsl:value-of select="translate($net_name, '-/()', '')" />
+			<xsl:value-of select="translate($net_name, '-/()+', '')" />
 		</xsl:otherwise>
 	</xsl:choose>
 </xsl:template>
