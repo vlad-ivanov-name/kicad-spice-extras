@@ -1,6 +1,6 @@
 ## kicad-spice-extras
 
-![example](readme-image.svg)
+<img src="https://cdn.rawgit.com/resetnow/kicad-spice-extras/master/readme-image.svg" width="70%" />
 
 kicad-spice-extras is a tool that allows to export a Kicad EESchema schematic to a SPICE-compatible netlist. It consists of a XSL transformation script and a set of helper components. These components allow to generate a number of SPICE simulation commands automatically based on schematic. 
 
